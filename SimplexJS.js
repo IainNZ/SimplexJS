@@ -127,6 +127,7 @@ var SimplexJS = {
 			rootModel.x = bestFeasibleX;
 			rootModel.z = bestFeasible;
 			rootModel.status = SimplexJS.OPTIMAL;
+			rootModel.nodeCount = nodeCount;
 		} else {
 			console.log("All nodes solved or fathomed - NO integer solution found,");
 			rootModel.status = SimplexJS.INFEASIBLE;
