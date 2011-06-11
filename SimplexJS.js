@@ -14,6 +14,9 @@ var SimplexJS = {
 	OPTIMAL    : 1,
 	UNBOUNDED  : 2,
 	
+	// Parameters
+	MAXITERATIONS: Infinity,
+	
 	//---------------------------------------------------------------
 	// ModelCopy
 	// 'Deep copies' a model by creating a copy of all children
@@ -38,7 +41,9 @@ var SimplexJS = {
 	//  st  A.x = b
 	//      l <= x <= u
 	//  Some x are integer, and b >= 0
-	SolveMILP : function(rootModel) {
+	SolveMILP : function(rootModel, maxNodes) {
+	
+		if (maxNodes === undefined) maxNodes = Infinity;
 	
 		// Track the best integer solution found
 		var bestFeasible = Infinity;
@@ -57,6 +62,12 @@ var SimplexJS = {
 		while (unsolvedLPs.length >= 1) {
 			nodeCount += 1;
 			model = unsolvedLPs.shift();
+			
+			// Stop if we reached max node count
+			if (nodeCount >= maxNodes) {
+				unsolvedLPs = [];
+				break;
+			}
 			
 			// Solve the LP at this node
 			console.log("Solving node", nodeCount, "Nodes on tree:", unsolvedLPs.length+1);
@@ -118,16 +129,17 @@ var SimplexJS = {
 				unsolvedLPs.push(upBranchModel);
 			}
 			
+			
 		}
 	
 		// How did it go?
+		rootModel.nodeCount = nodeCount;
 		if (bestFeasible < Infinity) {
 			// Done!
 			console.log("All nodes solved or fathomed - integer solution found,");
 			rootModel.x = bestFeasibleX;
 			rootModel.z = bestFeasible;
 			rootModel.status = SimplexJS.OPTIMAL;
-			rootModel.nodeCount = nodeCount;
 		} else {
 			console.log("All nodes solved or fathomed - NO integer solution found,");
 			rootModel.status = SimplexJS.INFEASIBLE;
@@ -194,8 +206,11 @@ var SimplexJS = {
 		}
 		
 		// Being simplex iterations
-		var phaseOne = true;
+		var phaseOne = true, iter = 0;
 		while (true) {
+			iter++;
+			if (iter >= SimplexJS.MAXITERATIONS) break;
+			
 			//---------------------------------------------------------------------
 			// Step 1. Duals and reduced Costs
 			//console.log(Binv)

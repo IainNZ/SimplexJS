@@ -169,10 +169,12 @@ function SolveTSP() {
 	}
 
 	// Solve
-	SimplexJS.SolveMILP(tsp);
+	SimplexJS.MAXITERATIONS = 100;
+	SimplexJS.SolveMILP(tsp, 20);
 	
 	// Display answer
-	var out = "Solved! Size of branch-and-bound tree was " + tsp.nodeCount.toString() + ":<br>";
+	var out = "Solved!<br>Size of branch-and-bound tree was " + tsp.nodeCount.toString() + " (limit: 20)<br>";
+	out += tsp.n.toString() + " variables, " + tsp.m.toString() + " constraints.<br>";
 	curSolution = [];
 	for (i = 0; i < numCities; i++) {
 		for (j = i+1; j < numCities; j++) {
