@@ -1,0 +1,68 @@
+/* Colour help from http://www.colorblender.com/ */
+
+body {
+  background-color: #7AADCC;
+  font-size: 12px;
+  font-family: Verdana, Arial, Helvetica, SunSans-Regular, Sans-Serif;
+  color:#151536;  
+  margin: 20px 50px 20px 50px;
+  text-align: center;
+}
+
+#content { 
+  width: 100%;
+  padding: 0 px;
+  text-align: left;
+  background-color: #FFFFFF;	
+  overflow: auto;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #4D6C80;
+}
+
+p {
+	margin: 10px;
+}
+
+table { 
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	border-spacing: 0px;
+}
+
+td {
+	padding: 5px;
+	border-style: solid;
+	border-width: 0px;
+	border-color: #CCCCCC;
+}
+
+div.h1 {
+	background-color: #CCB57A;
+	color: #000000;
+	margin: 5px;
+	padding: 5px;
+	text-align: center;
+	font-size: 24px;
+	font-weight:bold;
+}
+
+div.h2 {
+	background-color: #CCCCCC;
+	color: #000000;
+	margin: 5px;
+	padding: 5px;
+	text-align: center;
+	font-size: 18px;
+	font-weight:bold;
+}
+
+
+.contents A:link {text-decoration: none; color: blue}
+.contents A:visited {text-decoration: none; color: blue}
+.contents A:active {text-decoration: none}
+.contents A:hover {text-decoration: underline; color: red;}
+
+.subheader {font-size: 80%; font-style:italic}

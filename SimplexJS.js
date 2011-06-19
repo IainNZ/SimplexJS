@@ -41,9 +41,10 @@ var SimplexJS = {
 	//  st  A.x = b
 	//      l <= x <= u
 	//  Some x are integer, and b >= 0
-	SolveMILP : function(rootModel, maxNodes) {
+	SolveMILP : function(rootModel, maxNodes, log) {
 	
 		if (maxNodes === undefined) maxNodes = Infinity;
+		if (log === undefined) log = [];
 	
 		// Track the best integer solution found
 		var bestFeasible = Infinity;
@@ -65,25 +66,27 @@ var SimplexJS = {
 			
 			// Stop if we reached max node count
 			if (nodeCount >= maxNodes) {
+				log.push("Tried to solve node #"+nodeCount.toString()+" which is >= max = "+maxNodes.toString());
 				unsolvedLPs = [];
-				break;
+				rootModel.status = SimplexJS.INFEASIBLE;
+				return;
 			}
 			
 			// Solve the LP at this node
-			console.log("Solving node", nodeCount, "Nodes on tree:", unsolvedLPs.length+1);
-			SimplexJS.PrimalSimplex(model);
+			log.push("Solving node #"+nodeCount.toString()+", nodes on tree: "+(unsolvedLPs.length+1).toString());
+			SimplexJS.PrimalSimplex(model, log);
 			if (model.status == SimplexJS.INFEASIBLE) {
 				// LP is infeasible, fathom it
-				console.log("Node infeasible, fathoming.");
+				log.push("Node infeasible, fathoming.");
 				continue;
 			}
-			console.log("LP solution at node =", model.z);
-			console.log(model.x);
+			log.push("LP solution at node = "+model.z.toString());
+			//console.log(model.x);
 			
 			// Is this worse than the best integer solution?
 			if (model.z > bestFeasible) {
 				// Fathom
-				console.log("LP solution worse than best integer feasible, fathoming.");
+				log.push("LP solution worse than best integer feasible, fathoming.");
 				continue;
 			}
 			
@@ -109,15 +112,15 @@ var SimplexJS = {
 			// Did we find any fractional ints?
 			if (mostFracIndex == -1) {
 				// No fractional ints - update best feasible?
-				console.log("Node is integer feasible.");
+				log.push("Node is integer feasible.");
 				if (model.z < bestFeasible) {
-					console.log("Best integer feasible was", bestFeasible, ", is now", model.z);
+					log.push("Best integer feasible was "+bestFeasible.toString()+", is now = "+model.z.toString());
 					bestFeasible = model.z;
 					for (i = 0; i < model.n; i++) bestFeasibleX[i] = model.x[i];
 				}
 			} else {
 				// Some fractional - create two new LPs to solve
-				console.log("Node is fractional, branching on most fractional variable,", mostFracIndex);
+				log.push("Node is fractional, branching on most fractional variable, "+mostFracIndex.toString());
 				downBranchModel = SimplexJS.ModelCopy(model);
 				downBranchModel.xUB[mostFracIndex] = Math.floor(downBranchModel.x[mostFracIndex])
 				downBranchModel.z = model.z;
@@ -136,12 +139,12 @@ var SimplexJS = {
 		rootModel.nodeCount = nodeCount;
 		if (bestFeasible < Infinity) {
 			// Done!
-			console.log("All nodes solved or fathomed - integer solution found,");
+			log.push("All nodes solved or fathomed - integer solution found");
 			rootModel.x = bestFeasibleX;
 			rootModel.z = bestFeasible;
 			rootModel.status = SimplexJS.OPTIMAL;
 		} else {
-			console.log("All nodes solved or fathomed - NO integer solution found,");
+			log.push("All nodes solved or fathomed - NO integer solution found");
 			rootModel.status = SimplexJS.INFEASIBLE;
 		}
 	
@@ -155,7 +158,9 @@ var SimplexJS = {
 	//  st  A.x = b
 	//      l <= x <= u
 	//  Some x are integer, and b >= 0
-	PrimalSimplex : function(model) {
+	PrimalSimplex : function(model, log) {
+		
+		if (log === undefined) log = [];
 		
 		// Get shorter names
 		A=model.A; b=model.b; c=model.c;
@@ -209,7 +214,14 @@ var SimplexJS = {
 		var phaseOne = true, iter = 0;
 		while (true) {
 			iter++;
-			if (iter >= SimplexJS.MAXITERATIONS) break;
+			if (iter >= SimplexJS.MAXITERATIONS) {
+				log.push("PrimalSimplex: Reached MAXITERATIONS="+iter.toString());
+				z = 0.0;
+				for (i = 0; i < n; i++) z += c[i] * x[i];
+				model.z = z; //Infinity;
+				model.x = x;
+				break;
+			}
 			
 			//---------------------------------------------------------------------
 			// Step 1. Duals and reduced Costs
@@ -254,10 +266,11 @@ var SimplexJS = {
 					for (i = 0; i < m; i++) z += cBT[i] * x[basicVars[i]];
 					if (z > TOL) {
 						//console.log("Phase 1 objective: z = ", z, " > 0 -> infeasible!");
+						log.push("PrimalSimplex: Phase 1 objective: z = "+z.toString()+" > 0 -> infeasible!");
 						model.status = SimplexJS.INFEASIBLE;
 						break;
 					} else {
-						//console.log("Transitioning to phase 2");
+						//log.push("Transitioning to phase 2");
 						phaseOne = false;
 						for (i = 0; i < m; i++) {
 							cBT[i] = (basicVars[i] < n) ? (c[basicVars[i]]) : (0.0);
@@ -273,6 +286,7 @@ var SimplexJS = {
 					model.z = z;
 					model.x = x;
 					//console.log("Optimality in Phase 2!",z);
+					log.push("PrimalSimplex: Optimality in Phase 2: z = "+z.toString());
 					//console.log(x);
 					break;
 				}
@@ -318,11 +332,13 @@ var SimplexJS = {
 				if (phaseOne) {
 					// Not sure what this means - nothing good!
 					//console.log("Something bad happened");
+					log.push("PrimalSimplex: Something bad happened in Phase 1...");
 					break;
 				} else {
 					// PHASE 2: Unbounded!
 					model.status = SimplexJS.UNBOUNDED;
 					//console.log("Unbounded in Phase 2!");
+					log.push("PrimalSimplex: Unbounded in Phase 2!");
 					break;
 				}
 			}
