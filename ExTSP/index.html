@@ -177,6 +177,7 @@ function SolveTSP() {
 		tsp.xLB.push(0);
 		tsp.xUB.push(Infinity);
 		tsp.c.push(0);
+		tsp.xINT.push(false);
 		// Modify existing constraints
 		for (i = 0; i < tsp.m; i++) tsp.A[i].push(0);
 		// Add new constraint
@@ -189,6 +190,7 @@ function SolveTSP() {
 			j = stArcs[starc][1];
 			tsp.A[tsp.m-1][col[[i,j]]] = 1;
 		}
+		tsp.A[tsp.m-1][tsp.n-1] = 1; // slack
 	}
 
 	// Solve
@@ -314,7 +316,7 @@ so whats the secret?</p>
 // use to tell it to add some extra constraints by saying which arcs are in
 // each subtour.
 // Remove the // from the start of the next line to add a constraint.
-// subtours.push([ [[0,1], [0,2], [1,2]], 2 ]) // Adds  x01 + x02 + x12 <= 2
+subtours.push([ [[0,1], [0,2], [1,2]], 2 ]) // Adds  x01 + x02 + x12 <= 2
 </textarea></p>
 <p>Have you followed the above instructions? Now re-solve the TSP above. Perfect!</p>
 <p>We only need one of the many possible subtour-elimination constraints to change our nearly-correct 
