@@ -163,9 +163,13 @@ var SimplexJS = {
 		if (log === undefined) log = [];
 		
 		// Get shorter names
-		A=model.A; b=model.b; c=model.c;
-		m=model.m; n=model.n;
-		xLB=model.xLB; xUB=model.xUB;
+		var A=model.A;
+		var b=model.b;
+		var c=model.c;
+		var m=model.m;
+		var n=model.n;
+		var xLB=model.xLB;
+		var xUB=model.xUB;
 		
 		// Define some temporary variables we will need for RSM
 		var i, j;
